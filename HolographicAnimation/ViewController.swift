@@ -10,19 +10,21 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    var backbroundCollections = [UIImageView]()
+    var backbroundCollections: Set<UIImageView>  = []
     var randomSizeList: [CGFloat] = [20, 30, 40]
     var randomAlpha: [CGFloat] = [0.8, 0.9, 1.0, 1.0]
+    var colors: [UIColor] = [.brown, .gray, .green, .white, .orange, .purple]
     var animationTimer: Timer?
     var minHeight: CGFloat = 0
     var currentX: CGFloat = 0
     var counter = 0
     var alphaCount:CGFloat = 0.0
     var reset = UIButton()
+    var randomColor = UIColor()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(view.frame.midX)
+        view.backgroundColor = .black
         let frame = CGRect(x: view.frame.midX - 50, y: view.frame.midY - 25, width: 100, height: 50)
         let button = UIButton(type: .system)
         button.layer.cornerRadius = 8
@@ -35,17 +37,13 @@ class ViewController: UIViewController {
         view.addSubview(reset)
     }
     
-    @objc func run() {
-        loadingScreen()
-    }
-    
     @objc func reLoadScreen() {
         alphaCount = 0
         reset.backgroundColor = .clear
         reset.isEnabled = false
-        counter += 1
         currentX = 0
         minHeight = 0
+        randomColor = colors.randomElement()!
         animationTimer = Timer.scheduledTimer(timeInterval: 0.0025, target: self, selector: #selector(loadingScreen), userInfo: nil, repeats: true)
     }
     
@@ -56,15 +54,10 @@ class ViewController: UIViewController {
         
         let cell = UIImageView(frame: CGRect(x: currentX, y: currentY, width: randomSize, height: randomSize))
         
-        
-        if counter % 2 == 0 {
-            cell.backgroundColor = .white
-        } else {
-            cell.backgroundColor = .black
-        }
+        cell.backgroundColor = randomColor
         cell.alpha = randomAlpha.randomElement()!
         self.view.addSubview(cell)
-        backbroundCollections.append(cell)
+        backbroundCollections.insert(cell)
         self.currentX += randomSize
         
         if currentX >= view.frame.maxX {
@@ -76,14 +69,25 @@ class ViewController: UIViewController {
             for cell in backbroundCollections {
                 cell.alpha = 1
             }
-            reset.isEnabled = true
+            animationTimer?.invalidate()
+            animationTimer = Timer.scheduledTimer(timeInterval: 0.005, target: self, selector: #selector(removeCell), userInfo: nil, repeats: true)
+//            for cell in backbroundCollections {
+//                cell.removeFromSuperview()
+//            }
+//            backbroundCollections = []
+        }
+    }
+    
+    @objc func removeCell() {
+        if !backbroundCollections.isEmpty {
+            let removedCell = backbroundCollections.removeFirst()
+            removedCell.removeFromSuperview()
+        } else {
+            animationTimer?.invalidate()
             reset.backgroundColor = .systemBlue
             reset.alpha = 0
-            animationTimer?.invalidate()
-            print("hello")
             view.addSubview(reset)
             animationTimer = Timer.scheduledTimer(timeInterval: 0.05, target: self, selector: #selector(showButton), userInfo: nil, repeats: true)
-            backbroundCollections = []
         }
     }
     
@@ -92,8 +96,10 @@ class ViewController: UIViewController {
             alphaCount += 0.025
             reset.alpha = alphaCount
         } else {
+            reset.isEnabled = true
             animationTimer?.invalidate()
         }
     }
 }
+
 
